@@ -2,12 +2,16 @@ from typing import Tuple, Union
 import math
 import cv2
 import numpy as np
+import os
 
 MARGIN = 10  # pixels
 ROW_SIZE = 10  # pixels
 FONT_SIZE = 1
 FONT_THICKNESS = 1
 TEXT_COLOR = (255, 0, 0)  # red
+
+# Configuração do caminho das imagens
+FOTOS_DIR = 'fotos'
 
 
 def _normalized_to_pixel_coordinates(
@@ -71,14 +75,12 @@ def visualize(
   return annotated_image
 
 
-IMAGE_FILE = 'image.jpg'
+# import cv2
 
-import cv2
-
-img = cv2.imread(IMAGE_FILE)
-cv2.imshow('Imagem', img)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# img = cv2.imread(IMAGE_FILE)
+# cv2.imshow('Imagem', img)
+# cv2.waitKey(0)
+# cv2.destroyAllWindows()
 
 
 import numpy as np
@@ -91,16 +93,31 @@ base_options = python.BaseOptions(model_asset_path='detector.tflite')
 options = vision.FaceDetectorOptions(base_options=base_options)
 detector = vision.FaceDetector.create_from_options(options)
 
-# STEP 3: Load the input image.
-image = mp.Image.create_from_file(IMAGE_FILE)
 
-# STEP 4: Detect faces in the input image.
-detection_result = detector.detect(image)
 
-# STEP 5: Process the detection result. In this case, visualize it.
-image_copy = np.copy(image.numpy_view())
-annotated_image = visualize(image_copy, detection_result)
-rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
-cv2.imshow('Imagem', rgb_annotated_image)
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+# STEP 3: Processar todas as imagens no diretório
+for filename in os.listdir(FOTOS_DIR):
+    if filename.lower().endswith(('.png', '.jpg', '.jpeg')):
+        image_path = os.path.join(FOTOS_DIR, filename)
+        print(f"Processando imagem: {filename}")
+        
+        # Carregar a imagem
+        image = mp.Image.create_from_file(image_path)
+        
+        # Detectar faces na imagem
+        detection_result = detector.detect(image)
+        
+        # Adicionar informações de debug
+        print(f"Número de faces detectadas em {filename}: {len(detection_result.detections)}")
+        
+        # Processar o resultado da detecção
+        image_copy = np.copy(image.numpy_view())
+        annotated_image = visualize(image_copy, detection_result)
+        rgb_annotated_image = cv2.cvtColor(annotated_image, cv2.COLOR_BGR2RGB)
+        
+        # Mostrar a imagem processada
+        cv2.imshow(f'Imagem: {filename}', rgb_annotated_image)
+        print(f"Pressione qualquer tecla para continuar...")
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
