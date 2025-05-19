@@ -6,13 +6,12 @@ import os
 
 MARGIN = 10  # pixels
 ROW_SIZE = 10  # pixels
-FONT_SIZE = 1
+FONT_SIZE = 2
 FONT_THICKNESS = 1
-TEXT_COLOR = (255, 0, 0)  # red
+TEXT_COLOR = (0, 255, 0) 
 
 # Configuração do caminho das imagens
 FOTOS_DIR = 'fotos'
-
 
 def _normalized_to_pixel_coordinates(
     normalized_x: float, normalized_y: float, image_width: int,
@@ -93,7 +92,7 @@ base_options = python.BaseOptions(model_asset_path='detector.tflite')
 options = vision.FaceDetectorOptions(base_options=base_options)
 detector = vision.FaceDetector.create_from_options(options)
 
-
+list_without_face = []
 
 # STEP 3: Processar todas as imagens no diretório
 for filename in os.listdir(FOTOS_DIR):
@@ -109,6 +108,8 @@ for filename in os.listdir(FOTOS_DIR):
         
         # Adicionar informações de debug
         print(f"Número de faces detectadas em {filename}: {len(detection_result.detections)}")
+        if len(detection_result.detections) == 0:
+          list_without_face.append(filename)
         
         # Processar o resultado da detecção
         image_copy = np.copy(image.numpy_view())
@@ -121,3 +122,10 @@ for filename in os.listdir(FOTOS_DIR):
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
+def save_list_to_file(list, filename):
+  with open(filename, 'w') as f:
+    for filename in list:
+      f.write(filename + '\n')
+
+print(f"Imagens sem faces: {list_without_face}")
+save_list_to_file(list_without_face, 'imagens_sem_face.txt')
